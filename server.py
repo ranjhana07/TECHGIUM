@@ -138,7 +138,7 @@ client.on_message = on_message
 def run():
     """Main function to run the gas sensor data server"""
     try:
-        logging.info("🛡 MINE ARMOUR - GAS SENSOR DATA SERVER")
+        logging.info("🛰️ INFRA SENSE - SENSOR DATA SERVER")
         logging.info("==================================================")
         logging.info(f"🔗 Connecting to MQTT broker: {host}:{port}")
         logging.info(f"📡 Monitoring topic: {mqtt_topic}")

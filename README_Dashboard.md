@@ -1,17 +1,12 @@
-# 🛡️ Mine Armour - Real-time Gas Sensor Dashboard
+# �️ InfraSense - Real-time Multi-Sensor Dashboard
 
-A professional real-time dashboard for monitoring gas sensor data via MQTT. This dashboard displays live data from multiple gas sensors with a modern dark theme interface.
+A professional real-time dashboard for monitoring health, environmental, RFID, and GPS data via MQTT. Gas tiles/charts have been removed from the UI.
 
 ## 🚀 Features
 
-- **Real-time Gas Monitoring**: Live updates every second
-- **Multiple Gas Types**:
-  - 🔥 **LPG**: Liquefied Petroleum Gas monitoring
-  - 💨 **CH4**: Methane gas detection
-  - ⛽ **Propane**: Propane gas levels
-  - 🧨 **Butane**: Butane gas monitoring
-  - ⚡ **H2**: Hydrogen gas detection
-- **Interactive Charts**: Real-time line charts with gradient fills
+- **Real-time Monitoring**: Live updates every second
+- **Health & Environment**: Heart rate, SpO2, GSR, Stress, Temperature, Humidity
+- **Interactive Charts**: Real-time line charts with gradient fills for non-gas sensors
 - **Modern UI**: Professional dark theme with Font Awesome icons
 - **Connection Status**: MQTT connection monitoring
 - **Responsive Design**: Works on desktop and mobile devices
@@ -61,23 +56,16 @@ python sensor_simulator.py
 
 ## 📡 MQTT Topic
 
-The dashboard subscribes to the following MQTT topic:
-
-| Topic | Sensor | Data Format |
-|-------|--------|-------------|
-| `LOKI_2004` | Gas Sensors | `{"LPG": 0.29, "CH4": 0.56, "Propane": 0.35, "Butane": 0.38, "H2": 0.60}` |
+The dashboard subscribes to `LOKI_2004` for multi-sensor data (health, environment, GPS, RFID). Gas fields, if present, are ignored by the UI.
 
 ## 📊 Dashboard Components
 
 ### 1. **Status Cards**
 - Real-time connection status
-- Current gas sensor values
-- Color-coded indicators for each gas type
+- Current health/environment metrics (no gas tiles)
 
 ### 2. **Real-time Charts**
-- Individual charts for each gas type
-- Live updating with gradient fills
-- Dark theme styling
+- Charts for health and environmental metrics (no gas charts)
 
 ### 2. **Interactive Charts**
 - Gas level monitoring

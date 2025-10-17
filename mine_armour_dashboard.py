@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Mine Armour - Real-time Multi-Sensor Dashboard
+InfraSense - Real-time Multi-Sensor Dashboard
 Displays real-time sensor data from MQTT broker
-Sensors: Gas (LPG, CH4, Propane, Butane, H2), Heart Rate, Temperature, Humidity, GSR, GPS
+Sensors: Heart Rate, Temperature, Humidity, GSR, GPS (gas cards/charts removed)
 """
 
 import os
@@ -33,6 +33,9 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
+
+# Simple build stamp to confirm the UI is from the latest code
+BUILD_STAMP = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 class SensorDataManager:
     """Manages real-time multi-sensor data storage and retrieval"""
@@ -600,18 +603,9 @@ class SensorDataManager:
         self.max_points = max_points
         self.data = {
             'gas_sensors': {
+                # Keep only timestamps and a latest dict used by the UI for non-gas metrics
                 'timestamps': deque(maxlen=max_points),
-                'LPG': deque(maxlen=max_points),
-                'CH4': deque(maxlen=max_points),
-                'Propane': deque(maxlen=max_points),
-                'Butane': deque(maxlen=max_points),
-                'H2': deque(maxlen=max_points),
                 'latest': {
-                    'LPG': 0,
-                    'CH4': 0,
-                    'Propane': 0,
-                    'Butane': 0,
-                    'H2': 0,
                     'timestamp': None
                 }
             },
@@ -672,18 +666,6 @@ class SensorDataManager:
             # Add gas sensor data
             self.data['gas_sensors']['timestamps'].append(timestamp)
             
-            lpg = data.get('LPG', 0)
-            ch4 = data.get('CH4', 0)
-            propane = data.get('Propane', 0)
-            butane = data.get('Butane', 0)
-            h2 = data.get('H2', 0)
-            
-            self.data['gas_sensors']['LPG'].append(lpg)
-            self.data['gas_sensors']['CH4'].append(ch4)
-            self.data['gas_sensors']['Propane'].append(propane)
-            self.data['gas_sensors']['Butane'].append(butane)
-            self.data['gas_sensors']['H2'].append(h2)
-            
             # Add health sensor data
             self.data['health_sensors']['timestamps'].append(timestamp)
             heartRate = data.get('heartRate', -1)
@@ -716,13 +698,8 @@ class SensorDataManager:
             self.data['gps_data']['alt'].append(alt)
             self.data['gps_data']['sat'].append(sat)
             
-            # Update latest values with ALL sensor data
+            # Update latest values used by UI (non-gas)
             self.data['gas_sensors']['latest'] = {
-                'LPG': lpg,
-                'CH4': ch4,
-                'Propane': propane,
-                'Butane': butane,
-                'H2': h2,
                 'heartRate': heartRate,
                 'spo2': spo2,
                 'temperature': temperature,
@@ -744,7 +721,7 @@ class SensorDataManager:
                 'sat': sat
             }
             
-            logging.info(f"All sensor data updated: Gas={lpg:.2f}, GPS=({lat:.6f},{lon:.6f}), Health=HR:{heartRate},SpO2:{spo2}")
+            logging.info(f"Sensor data updated: GPS=({lat:.6f},{lon:.6f}), Health=HR:{heartRate},SpO2:{spo2}")
     
     def get_gas_data(self):
         """Get gas sensor data for plotting"""
@@ -954,7 +931,7 @@ app = dash.Dash(__name__, external_stylesheets=[
     dbc.themes.CYBORG,  # Dark theme
     "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"  # Icons
 ])
-app.title = "🛡 Mine Armour - Gas Sensor Dashboard"
+app.title = "�️ InfraSense - Multi-Sensor Dashboard"
 
 # Custom CSS styling with darker red-black gradient theme
 custom_style = {
@@ -1089,8 +1066,8 @@ def zone_select_layout():
     return html.Div([
         html.Div([
             html.Div([
-                html.H1("MINE ARMOUR", className='landing-title'),
-                html.Div("Protecting Miners Preserving Lives", className='landing-subtext', style={'fontSize':'0.95rem','marginTop':'-18px','marginBottom':'10px','letterSpacing':'.8px','color':'#ffcccc','fontWeight':'600'}),
+                html.H1("InfraSense", className='landing-title'),
+                html.Div("Where Construction Meets Intelligence", className='landing-subtext', style={'fontSize':'0.95rem','marginTop':'-18px','marginBottom':'10px','letterSpacing':'.8px','color':'#ffcccc','fontWeight':'600'}),
                 dcc.Dropdown(
                     id='zone-select-only',
                     options=[
@@ -1168,7 +1145,7 @@ def nodes_layout(zone_name):
     return html.Div([
         html.Div([
             html.Div([
-                html.H1("MINE ARMOUR", className='landing-title'),
+                html.H1("InfraSense", className='landing-title'),
                 html.Div(f"Select Node in {zone_name.replace('_', ' ')}", 
                         className='landing-subtext', 
                         style={'fontSize':'0.95rem','marginTop':'-18px','marginBottom':'20px','letterSpacing':'.8px','color':'#ffcccc','fontWeight':'600'}),
@@ -1194,8 +1171,8 @@ def login_layout():
     return html.Div([
         html.Div([
             html.Div([
-                html.H1("MINE ARMOUR", className='landing-title'),
-                html.Div("Protecting Miners, Preserving Lives", className='landing-subtext', style={'marginTop':'-18px','fontSize':'0.9rem'}),
+                html.H1("InfraSense", className='landing-title'),
+                html.Div("Where Construction Meets Intelligence", className='landing-subtext', style={'marginTop':'-18px','fontSize':'0.9rem'}),
                 dbc.Input(id='login-username', placeholder='Username', type='text', value='', style={'marginBottom':'14px','background':'#140000','color':'#fff','border':'1px solid #990000'}),
                 dbc.Input(id='login-password', placeholder='Password', type='password', value='', style={'marginBottom':'8px','background':'#140000','color':'#fff','border':'1px solid #990000'}),
                 html.Button('LOGIN', id='login-btn', n_clicks=0, className='landing-btn'),
@@ -1222,7 +1199,7 @@ def vitals_layout():
                         'filter': 'drop-shadow(0 0 20px #800000)',
                         'transform': 'rotate(-5deg)'
                     }),
-                    "MINE ARMOUR"
+                    "InfraSense"
                 ], className="text-center mb-4", 
                    style={'color': '#ffffff', 'font-weight': 'bold', 'fontSize': '3rem'}),
                 html.P([
@@ -1232,8 +1209,12 @@ def vitals_layout():
                     "Live Updates Every Second | ",
                     html.I(className="fas fa-microchip me-2"),
                     "Multi-Sensor Monitoring"
-                ], className="text-center mb-0",
+                ], className="text-center mb-1",
                    style={'color': '#a5b4fc', 'fontSize': '1.1rem'})
+                ,
+                html.Div([
+                    html.Small(f"UI Build: {BUILD_STAMP}", style={'opacity':0.7, 'letterSpacing':'.5px'})
+                ], className='text-center')
             ], style=header_style)
         ])
     ], className="mb-4"),
@@ -1261,80 +1242,7 @@ def vitals_layout():
         ], width=12)
     ], className='mb-3'),
     
-    # Current Values Grid
-    dbc.Row([
-        dbc.Col([
-            dbc.Card([
-                dbc.CardBody([
-                    html.Div([
-                        html.I(className="fas fa-fire text-danger", style={'fontSize': '2rem'}),
-               html.H3(id="lpg-current", className="metric-value mb-0 mt-2", style={'color': '#ff6b6b'}),
-                        html.P("LPG Gas Level", className="text-muted mb-0")
-                    ], className="text-center")
-                ])
-            ], style=card_style)
-        ], width=2),
-        
-        dbc.Col([
-            dbc.Card([
-                dbc.CardBody([
-                    html.Div([
-                        html.I(className="fas fa-cloud text-primary", style={'fontSize': '2rem'}),
-               html.H3(id="ch4-current", className="metric-value mb-0 mt-2", style={'color': '#4ecdc4'}),
-                        html.P("CH4 (Methane)", className="text-muted mb-0")
-                    ], className="text-center")
-                ])
-            ], style=card_style)
-        ], width=2),
-        
-        dbc.Col([
-            dbc.Card([
-                dbc.CardBody([
-                    html.Div([
-                        html.I(className="fas fa-gas-pump text-success", style={'fontSize': '2rem'}),
-               html.H3(id="propane-current", className="metric-value mb-0 mt-2", style={'color': '#45b7d1'}),
-                        html.P("Propane Gas", className="text-muted mb-0")
-                    ], className="text-center")
-                ])
-            ], style=card_style)
-        ], width=2),
-        
-        dbc.Col([
-            dbc.Card([
-                dbc.CardBody([
-                    html.Div([
-                        html.I(className="fas fa-burn text-warning", style={'fontSize': '2rem'}),
-               html.H3(id="butane-current", className="metric-value mb-0 mt-2", style={'color': '#f39c12'}),
-                        html.P("Butane Gas", className="text-muted mb-0")
-                    ], className="text-center")
-                ])
-            ], style=card_style)
-        ], width=2),
-        
-        dbc.Col([
-            dbc.Card([
-                dbc.CardBody([
-                    html.Div([
-                        html.I(className="fas fa-atom text-info", style={'fontSize': '2rem'}),
-               html.H3(id="h2-current", className="metric-value mb-0 mt-2", style={'color': '#9b59b6'}),
-                        html.P("H2 (Hydrogen)", className="text-muted mb-0")
-                    ], className="text-center")
-                ])
-            ], style=card_style)
-        ], width=2),
-        
-        dbc.Col([
-            dbc.Card([
-                dbc.CardBody([
-                    html.Div([
-                        html.I(className="fas fa-chart-line text-success", style={'fontSize': '2rem'}),
-                        html.H6("System Status", className="mb-2 mt-2", style={'color': '#ffffff'}),
-                        html.P(id="last-update", className="text-muted mb-0", style={'fontSize': '0.9rem'})
-                    ], className="text-center")
-                ])
-            ], style=card_style)
-        ], width=2)
-    ], className="mb-4"),
+    # Removed the top metrics row entirely (no gas tiles, no system status tile)
     
     # Additional Sensor Values Grid
     dbc.Row([
@@ -1579,61 +1487,7 @@ def vitals_layout():
         ], width=6)
     ], className="mb-4"),
     
-    # Charts Section Header
-    dbc.Row([
-        dbc.Col([
-            html.H2([
-                html.I(className="fas fa-chart-area me-3"),
-                "Real-time Gas Sensor Charts"
-            ], className="text-center mb-4", 
-               style={'color': '#ffffff', 'fontWeight': 'bold'})
-        ])
-    ], className="mb-4"),
-    
-    # Gas Sensor Charts with enhanced styling
-    dbc.Row([
-        dbc.Col([
-            html.Div([
-                dcc.Graph(id="lpg-chart", 
-                         config={'displayModeBar': False},
-                         style={'backgroundColor': 'transparent'})
-            ], style=chart_style)
-        ], width=6),
-        dbc.Col([
-            html.Div([
-                dcc.Graph(id="ch4-chart", 
-                         config={'displayModeBar': False},
-                         style={'backgroundColor': 'transparent'})
-            ], style=chart_style)
-        ], width=6)
-    ], className="mb-4"),
-    
-    dbc.Row([
-        dbc.Col([
-            html.Div([
-                dcc.Graph(id="propane-chart", 
-                         config={'displayModeBar': False},
-                         style={'backgroundColor': 'transparent'})
-            ], style=chart_style)
-        ], width=6),
-        dbc.Col([
-            html.Div([
-                dcc.Graph(id="butane-chart", 
-                         config={'displayModeBar': False},
-                         style={'backgroundColor': 'transparent'})
-            ], style=chart_style)
-        ], width=6)
-    ], className="mb-4"),
-    
-    dbc.Row([
-        dbc.Col([
-            html.Div([
-                dcc.Graph(id="h2-chart", 
-                         config={'displayModeBar': False},
-                         style={'backgroundColor': 'transparent'})
-            ], style=chart_style)
-        ], width=12)
-    ], className="mb-4"),
+    # Gas sensor charts removed from UI
     
     # Auto-refresh component
     dcc.Interval(
@@ -1648,11 +1502,11 @@ def vitals_layout():
             html.Hr(style={'borderColor': '#636e72'}),
             html.P([
                 html.I(className="fas fa-hard-hat me-2"),
-                "Mine Armour Dashboard | ",
+                "InfraSense Dashboard | ",
                 html.I(className="fas fa-calendar me-2"),
                 "2025 | ",
                 html.I(className="fas fa-code me-2"),
-                "Real-time Gas Monitoring System"
+                "Real-time Sensor Monitoring System"
             ], className="text-center text-muted mb-3",
                style={'fontSize': '0.9rem'})
         ])
@@ -1719,12 +1573,6 @@ def login_action(n, username, password):
 @app.callback(
     [
         Output('connection-status', 'children'),
-        Output('lpg-current', 'children'),
-        Output('ch4-current', 'children'),
-        Output('propane-current', 'children'),
-        Output('butane-current', 'children'),
-        Output('h2-current', 'children'),
-        Output('last-update', 'children'),
         Output('heartrate-current', 'children'),
         Output('spo2-current', 'children'),
         Output('temperature-current', 'children'),
@@ -1741,267 +1589,36 @@ def login_action(n, username, password):
 def update_current_values(n):
     try:
         from datetime import datetime
-        
         # Connection status
         status = "Connected" if mqtt_client.connected else "Disconnected"
-        
-        # Get latest gas sensor values
+        # Latest values
         gas_data = data_manager.get_gas_data()
         gps_data = data_manager.get_gps_data()
-        
-        # Format gas sensor values with better error handling
         latest = gas_data.get('latest', {})
-        lpg_val = f"{latest.get('LPG', 0):.2f}" if latest.get('LPG') is not None else "---"
-        ch4_val = f"{latest.get('CH4', 0):.2f}" if latest.get('CH4') is not None else "---"
-        propane_val = f"{latest.get('Propane', 0):.2f}" if latest.get('Propane') is not None else "---"
-        butane_val = f"{latest.get('Butane', 0):.2f}" if latest.get('Butane') is not None else "---"
-        h2_val = f"{latest.get('H2', 0):.2f}" if latest.get('H2') is not None else "---"
-        
-        # Format additional sensor values
+        # Health/environment
         heart_val = f"{latest.get('heartRate', -1)}" if latest.get('heartRate', -1) != -1 else "---"
         spo2_val = f"{latest.get('spo2', -1):.1f}%" if latest.get('spo2', -1) != -1 else "---"
         temp_val = f"{latest.get('temperature', -1.0):.1f}°C" if latest.get('temperature', -1.0) != -1.0 else "---"
         hum_val = f"{latest.get('humidity', -1.0):.1f}%" if latest.get('humidity', -1.0) != -1.0 else "---"
         gsr_val = f"{latest.get('GSR', 0)}" if latest.get('GSR', 0) else "---"
         stress_val = "HIGH" if latest.get('stress', 0) == 1 else "LOW"
-        
-        # Format GPS values
+        # GPS
         gps_latest = gps_data.get('latest', {})
         lat_val = f"{gps_latest.get('lat', 0.0):.6f}" if gps_latest.get('lat', 0.0) else "---"
         lon_val = f"{gps_latest.get('lon', 0.0):.6f}" if gps_latest.get('lon', 0.0) else "---"
         alt_val = f"{gps_latest.get('alt', 0.0):.1f}" if gps_latest.get('alt', 0.0) else "---"
         sat_val = f"{gps_latest.get('sat', 0)}" if gps_latest.get('sat', 0) else "0"
-        
-        # Last update timestamp
+        # Timestamp
         now = datetime.now()
         last_update = now.strftime("%H:%M:%S")
-        
-        return [status, lpg_val, ch4_val, propane_val, butane_val, h2_val, f"Last: {last_update}",
-                heart_val, spo2_val, temp_val, hum_val, gsr_val, stress_val,
-                lat_val, lon_val, alt_val, sat_val]
-                
-    except Exception as e:
-        # Return default values if there's an error
+        return [status, heart_val, spo2_val, temp_val, hum_val, gsr_val, stress_val, lat_val, lon_val, alt_val, sat_val]
+    except Exception:
+        from datetime import datetime
         now = datetime.now()
         last_update = now.strftime("%H:%M:%S")
-        return ["Disconnected", "---", "---", "---", "---", "---", f"Error: {last_update}",
-                "---", "---", "---", "---", "---", "LOW",
-                "---", "---", "---", "0"]
+        return ["Disconnected", "---", "---", "---", "---", "---", "LOW", "---", "---", "---", "0"]
 
-@app.callback(
-    Output('lpg-chart', 'figure'),
-    [Input('interval-component', 'n_intervals')]
-)
-def update_lpg_chart(n):
-    gas_data = data_manager.get_gas_data()
-    
-    fig = go.Figure()
-    if gas_data['timestamps'] and gas_data['LPG']:
-        fig.add_trace(go.Scatter(
-            x=list(gas_data['timestamps']),
-            y=list(gas_data['LPG']),
-            mode='lines+markers',
-            name='LPG',
-            line=dict(color='#800000', width=3),
-            marker=dict(size=6, color='#800000'),
-            fill='tonexty',
-            fillcolor='rgba(128, 0, 0, 0.2)'
-        ))
-    
-    fig.update_layout(
-        title={
-            'text': "🔥 LPG Gas Sensor - Real-time",
-            'x': 0.5,
-            'font': {'color': '#FFFFFF', 'size': 16}
-        },
-        xaxis_title="Time",
-        yaxis_title="LPG Level",
-        height=300,
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(26,0,0,0.3)',
-        font={'color': '#FFFFFF'},
-        xaxis=dict(
-            gridcolor='#4B0000',
-            tickfont={'color': '#FFFFFF'}
-        ),
-        yaxis=dict(
-            gridcolor='#4B0000',
-            tickfont={'color': '#FFFFFF'}
-        )
-    )
-    return fig
-
-@app.callback(
-    Output('ch4-chart', 'figure'),
-    [Input('interval-component', 'n_intervals')]
-)
-def update_ch4_chart(n):
-    gas_data = data_manager.get_gas_data()
-    
-    fig = go.Figure()
-    if gas_data['timestamps'] and gas_data['CH4']:
-        fig.add_trace(go.Scatter(
-            x=list(gas_data['timestamps']),
-            y=list(gas_data['CH4']),
-            mode='lines+markers',
-            name='CH4',
-            line=dict(color='#4B0000', width=3),
-            marker=dict(size=6, color='#4B0000'),
-            fill='tonexty',
-            fillcolor='rgba(75, 0, 0, 0.2)'
-        ))
-    
-    fig.update_layout(
-        title={
-            'text': "💨 CH4 (Methane) Gas Sensor - Real-time",
-            'x': 0.5,
-            'font': {'color': '#FFFFFF', 'size': 16}
-        },
-        xaxis_title="Time",
-        yaxis_title="CH4 Level",
-        height=300,
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(26,0,0,0.3)',
-        font={'color': '#FFFFFF'},
-        xaxis=dict(
-            gridcolor='#4B0000',
-            tickfont={'color': '#FFFFFF'}
-        ),
-        yaxis=dict(
-            gridcolor='#4B0000',
-            tickfont={'color': '#FFFFFF'}
-        )
-    )
-    return fig
-
-@app.callback(
-    Output('propane-chart', 'figure'),
-    [Input('interval-component', 'n_intervals')]
-)
-def update_propane_chart(n):
-    gas_data = data_manager.get_gas_data()
-    
-    fig = go.Figure()
-    if gas_data['timestamps'] and gas_data['Propane']:
-        fig.add_trace(go.Scatter(
-            x=list(gas_data['timestamps']),
-            y=list(gas_data['Propane']),
-            mode='lines+markers',
-            name='Propane',
-            line=dict(color='#45b7d1', width=3),
-            marker=dict(size=6, color='#45b7d1'),
-            fill='tonexty',
-            fillcolor='rgba(69, 183, 209, 0.1)'
-        ))
-    
-    fig.update_layout(
-        title={
-            'text': "⛽ Propane Gas Sensor - Real-time",
-            'x': 0.5,
-            'font': {'color': '#ffffff', 'size': 16}
-        },
-        xaxis_title="Time",
-        yaxis_title="Propane Level",
-        height=300,
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        font={'color': '#ffffff'},
-        xaxis=dict(
-            gridcolor='#636e72',
-            tickfont={'color': '#ffffff'}
-        ),
-        yaxis=dict(
-            gridcolor='#636e72',
-            tickfont={'color': '#ffffff'}
-        )
-    )
-    return fig
-
-@app.callback(
-    Output('butane-chart', 'figure'),
-    [Input('interval-component', 'n_intervals')]
-)
-def update_butane_chart(n):
-    gas_data = data_manager.get_gas_data()
-    
-    fig = go.Figure()
-    if gas_data['timestamps'] and gas_data['Butane']:
-        fig.add_trace(go.Scatter(
-            x=list(gas_data['timestamps']),
-            y=list(gas_data['Butane']),
-            mode='lines+markers',
-            name='Butane',
-            line=dict(color='#f39c12', width=3),
-            marker=dict(size=6, color='#f39c12'),
-            fill='tonexty',
-            fillcolor='rgba(243, 156, 18, 0.1)'
-        ))
-    
-    fig.update_layout(
-        title={
-            'text': "🧨 Butane Gas Sensor - Real-time",
-            'x': 0.5,
-            'font': {'color': '#ffffff', 'size': 16}
-        },
-        xaxis_title="Time",
-        yaxis_title="Butane Level",
-        height=300,
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        font={'color': '#ffffff'},
-        xaxis=dict(
-            gridcolor='#636e72',
-            tickfont={'color': '#ffffff'}
-        ),
-        yaxis=dict(
-            gridcolor='#636e72',
-            tickfont={'color': '#ffffff'}
-        )
-    )
-    return fig
-
-@app.callback(
-    Output('h2-chart', 'figure'),
-    [Input('interval-component', 'n_intervals')]
-)
-def update_h2_chart(n):
-    gas_data = data_manager.get_gas_data()
-    
-    fig = go.Figure()
-    if gas_data['timestamps'] and gas_data['H2']:
-        fig.add_trace(go.Scatter(
-            x=list(gas_data['timestamps']),
-            y=list(gas_data['H2']),
-            mode='lines+markers',
-            name='H2',
-            line=dict(color='#9b59b6', width=3),
-            marker=dict(size=6, color='#9b59b6'),
-            fill='tonexty',
-            fillcolor='rgba(155, 89, 182, 0.1)'
-        ))
-    
-    fig.update_layout(
-        title={
-            'text': "⚡ H2 (Hydrogen) Gas Sensor - Real-time",
-            'x': 0.5,
-            'font': {'color': '#ffffff', 'size': 16}
-        },
-        xaxis_title="Time",
-        yaxis_title="H2 Level",
-        height=300,
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        font={'color': '#ffffff'},
-        xaxis=dict(
-            gridcolor='#636e72',
-            tickfont={'color': '#ffffff'}
-        ),
-        yaxis=dict(
-            gridcolor='#636e72',
-            tickfont={'color': '#ffffff'}
-        )
-    )
-    return fig
+# Gas charts callbacks removed
 
 # GPS Map Callback
 @app.callback(
@@ -2519,20 +2136,64 @@ if __name__ == '__main__':
         # Wait a moment for connection
         time.sleep(2)
         
-        print("🛡 Starting Mine Armour Multi-Sensor Dashboard...")
-        print("📊 Dashboard will be available at: http://localhost:8050")
+        # Run the dashboard (Dash >=3)
+        # Allow overriding host/port/debug via environment variables to avoid port conflicts
+        import os as _os
+        import socket as _socket
+
+        def _find_free_port(start_port: int, max_tries: int = 50) -> int:
+            port = start_port
+            for _ in range(max_tries):
+                with _socket.socket(_socket.AF_INET, _socket.SOCK_STREAM) as s:
+                    s.setsockopt(_socket.SOL_SOCKET, _socket.SO_REUSEADDR, 1)
+                    try:
+                        s.bind(("127.0.0.1", port))
+                        return port
+                    except OSError:
+                        port += 1
+            return start_port
+
+        _host = _os.getenv('HOST', '0.0.0.0')
+        # Preferred port from env; if not present, pick a free one starting at 8050
+        _preferred = _os.getenv('DASH_PORT') or _os.getenv('PORT')
+        if _preferred:
+            try:
+                _port = int(_preferred)
+            except Exception:
+                _port = 8050
+        else:
+            _port = _find_free_port(8050)
+
+        _debug_env = _os.getenv('DASH_DEBUG')
+        _debug = True if _debug_env is None else (_debug_env.strip() not in ('0', 'false', 'False', 'no', 'No'))
+
+        # Friendly startup banner with actual URL
+        print("🛰️ Starting InfraSense Multi-Sensor Dashboard...")
+        print(f"📊 Dashboard will be available at: http://localhost:{_port}")
         print("🔄 Real-time updates every second")
         print("📡 MQTT Topic: LOKI_2004 (Multi-Sensor Data)")
-        print("🔥 Gas Sensors: LPG, CH4, Propane, Butane, H2")
         print("❤ Health Sensors: Heart Rate, SpO2, GSR, Stress")
         print("🌡 Environment: Temperature, Humidity")
         print("📍 GPS: Location tracking")
-        
-        # Run the dashboard
-        app.run_server(debug=True, host='0.0.0.0', port=8050)
-        
+
+        # Try to run; if port is busy, auto-bump and retry a few times
+        tries = 0
+        max_retries = 3
+        while True:
+            try:
+                app.run(debug=_debug, host=_host, port=_port, use_reloader=False)
+                break
+            except OSError as _e:
+                msg = str(_e)
+                if tries < max_retries and ("address already in use" in msg.lower() or "Only one usage of each socket" in msg or "10048" in msg):
+                    tries += 1
+                    _port += 1
+                    print(f"⚠️  Port in use, retrying on http://localhost:{_port} ...")
+                    continue
+                raise
+    
     except KeyboardInterrupt:
-        print("\n🛑 Shutting down Mine Armour Dashboard...")
+        print("\n🛑 Shutting down InfraSense Dashboard...")
         mqtt_client.disconnect()
     except Exception as e:
         print(f"❌ Error starting dashboard: {e}")

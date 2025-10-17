@@ -1,4 +1,4 @@
-🛡️ MINE ARMOUR - CLEAN PROJECT STRUCTURE
+�️ INFRA SENSE - CLEAN PROJECT STRUCTURE
 =============================================
 
 📁 Project Files (Essential Only):
